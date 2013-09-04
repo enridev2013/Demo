@@ -7,9 +7,12 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,7 +28,8 @@ public class MainActivity extends Activity implements LocationListener {
     private TextView longitudeField;
     private LocationManager locationManager;
     private String provider;
-    public ArrayAdapter<String> adapter;
+    //public ArrayAdapter<String> adapter;
+    public CustomArrayAdapter adapter;
 
     /** Called when the activity is first created. */
     @Override
@@ -56,7 +60,8 @@ public class MainActivity extends Activity implements LocationListener {
         final ListView listview = (ListView) findViewById(R.id.listView);
         String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
                 "Blackberry", "WebOS"};
-
+        String[] values2 = new String[] { "Ok", "Ok", "Buu",
+                "Buu", "Buu"};
         /*
         final ArrayList<String> list = new ArrayList<String>();
         for (int i = 0; i < values.length; ++i)
@@ -64,8 +69,10 @@ public class MainActivity extends Activity implements LocationListener {
             list.add(values[i]);
         }
         */
-        adapter = new ArrayAdapter<String>(this,
-                R.layout.row_layout, R.id.label, values);
+        //adapter = new ArrayAdapter<String>(this,
+        //        R.layout.row_layout, R.id.label, values);
+        adapter = new CustomArrayAdapter(this,
+                        R.layout.row_layout, R.id.label, values, values2);
         listview.setAdapter(adapter);
 
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener()
@@ -74,20 +81,56 @@ public class MainActivity extends Activity implements LocationListener {
             public void onItemClick(AdapterView<?> parent, final View view,
                                     int position, long id)
             {
-                /*
                 final String item = (String) parent.getItemAtPosition(position);
                 view.animate().setDuration(1000).alpha(0)
                         .withEndAction(new Runnable() {
                             @Override
                             public void run() {
-                                list.remove(item);
-                                adapter.notifyDataSetChanged();
+                                //list.remove(item);
+                                adapter.remove(item);
+                                //adapter.notifyDataSetChanged();
+
                                 view.setAlpha(1);
                             }
                         });
-                 */
             }
         });
+    }
+
+    private class CustomArrayAdapter extends ArrayAdapter<String>
+    {
+        private Context m_context;
+        private int m_iRowResourceID;
+        private String[] m_asValues;
+        private String[] m_asValues2;
+        private LayoutInflater mInflater;
+        public CustomArrayAdapter(Context context, int textViewResourceId, int iRowResourceId,
+                                  String[] objects, String[] objects2)
+
+        {
+            super(context, textViewResourceId, R.layout.row_layout2, objects);
+            this.m_context = context;
+            this.m_iRowResourceID = iRowResourceId;
+            this.m_asValues = objects;
+            this.m_asValues2 = objects2;
+            mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+
+            View rowView = mInflater.inflate(R.layout.row_layout2, parent, false);
+            TextView textView = (TextView) rowView.findViewById(R.id.label1);
+            TextView textView2 = (TextView) rowView.findViewById(R.id.label2);
+
+            String sItem = getItem(position);
+            textView.setText(sItem);
+            if(textView2 != null)
+                textView2.setText(m_asValues2[position]);
+
+            return rowView;
+        }
+
     }
 
     /* Request updates at startup */
@@ -161,6 +204,7 @@ public class MainActivity extends Activity implements LocationListener {
     {
         try
         {
+            /*
             final ArrayList<String> list = new ArrayList<String>();
             int iItemCount = adapter.getCount();
             for (int i=0; i<iItemCount; i++)

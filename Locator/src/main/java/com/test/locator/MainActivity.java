@@ -56,7 +56,21 @@ public class MainActivity extends Activity implements LocationListener {
             longitudeField.setText("Location not available");
         }
 
-        //Initialize list
+        //Initialize lists
+        final ArrayList<RowItem> RowItemList = new ArrayList<RowItem>();
+        RowItemList.add(new RowItem("Android", "Ok"));
+        RowItemList.add(new RowItem("iPhone", "Ok"));
+        RowItemList.add(new RowItem("WindowsMobile", "Buu"));
+        RowItemList.add(new RowItem("Blackberry", "Buu"));
+        RowItemList.add(new RowItem("WebOS", "Buu"));
+
+        final ArrayList<String> RowItemListSingle = new ArrayList<String>();
+        RowItemListSingle.add("Android");
+        RowItemListSingle.add("iPhone");
+        RowItemListSingle.add("WindowsMobile");
+        RowItemListSingle.add("Blackberry");
+        RowItemListSingle.add("WebOS");
+
         final ListView listview = (ListView) findViewById(R.id.listView);
         String[] values = new String[] { "Android", "iPhone", "WindowsMobile",
                 "Blackberry", "WebOS"};
@@ -71,30 +85,33 @@ public class MainActivity extends Activity implements LocationListener {
         */
         //adapter = new ArrayAdapter<String>(this,
         //        R.layout.row_layout, R.id.label, values);
+        //adapter = new CustomArrayAdapter(this,
+        //                R.layout.row_layout, R.id.label, values, values2);
+        //adapter = new CustomArrayAdapter(this,
+         //       R.layout.row_layout, R.id.label, RowItemList, values);
         adapter = new CustomArrayAdapter(this,
-                        R.layout.row_layout, R.id.label, values, values2);
+                      R.layout.row_layout, R.id.label, RowItemListSingle, RowItemList);
         listview.setAdapter(adapter);
 
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
             @Override
             public void onItemClick(AdapterView<?> parent, final View view,
-                                    int position, long id)
+                                    final int position, long id)
             {
                 final String item = (String) parent.getItemAtPosition(position);
                 view.animate().setDuration(1000).alpha(0)
                         .withEndAction(new Runnable() {
                             @Override
                             public void run() {
-                                //list.remove(item);
-                                adapter.remove(item);
-                                //adapter.notifyDataSetChanged();
-
+                                adapter.remove(item, position);
+                                adapter.notifyDataSetChanged();
                                 view.setAlpha(1);
                             }
                         });
             }
         });
+
     }
 
     private class CustomArrayAdapter extends ArrayAdapter<String>
@@ -104,6 +121,30 @@ public class MainActivity extends Activity implements LocationListener {
         private String[] m_asValues;
         private String[] m_asValues2;
         private LayoutInflater mInflater;
+        private ArrayList<String> m_SingleList;
+        private ArrayList<RowItem> objListRowItem;
+
+        public CustomArrayAdapter(Context context, int textViewResourceId, int iRowResourceId,
+                                  ArrayList<String> objRowItems, ArrayList<RowItem> objRowItemsList)
+        {
+            super(context, textViewResourceId, R.layout.row_layout2, objRowItems);
+            this.m_context = context;
+            this.m_iRowResourceID = iRowResourceId;
+            this.m_SingleList = objRowItems;
+            this.objListRowItem = objRowItemsList;
+            mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        }
+
+        public CustomArrayAdapter(Context context, int textViewResourceId, int iRowResourceId,
+                                  ArrayList<RowItem> objRowItems, String[] objects)
+        {
+            super(context, textViewResourceId, R.layout.row_layout2, objects);
+            this.m_context = context;
+            this.m_iRowResourceID = iRowResourceId;
+            this.objListRowItem = objRowItems;
+            mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        }
+
         public CustomArrayAdapter(Context context, int textViewResourceId, int iRowResourceId,
                                   String[] objects, String[] objects2)
 
@@ -123,16 +164,36 @@ public class MainActivity extends Activity implements LocationListener {
             TextView textView = (TextView) rowView.findViewById(R.id.label1);
             TextView textView2 = (TextView) rowView.findViewById(R.id.label2);
 
-            String sItem = getItem(position);
-            textView.setText(sItem);
-            if(textView2 != null)
-                textView2.setText(m_asValues2[position]);
-
+            String sLable1 = this.m_SingleList.get(position);
+            textView.setText(sLable1);
+            String sLable2 = this.objListRowItem.get(position).m_sLable2;
+            textView2.setText(sLable2);
             return rowView;
         }
 
+        public void add(String sLable1, String sLable2)
+        {
+            super.add(sLable1);
+            this.objListRowItem.add(new RowItem(sLable1, sLable2));
+        }
+
+        public void remove(String item, int iPosition)
+        {
+            super.remove(item);
+            this.objListRowItem.remove(iPosition);
+        }
     }
 
+    private class RowItem
+    {
+        public String m_sLable1;
+        public String m_sLable2;
+        public RowItem(String sLable1, String sLable2)
+        {
+            this.m_sLable1 = sLable1;
+            this.m_sLable2 = sLable2;
+        }
+    }
     /* Request updates at startup */
     @Override
     protected void onResume() {
@@ -158,7 +219,6 @@ public class MainActivity extends Activity implements LocationListener {
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
         // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -174,6 +234,20 @@ public class MainActivity extends Activity implements LocationListener {
                 Toast.LENGTH_SHORT).show();
     }
 
+    public void onButtonClick(final View view)
+    {
+        try
+        {
+            adapter.add("Enrico", "Ok");
+        }
+        catch(Exception e)
+        {
+            String error = e.getMessage();
+        }
+    }
+}
+
+/*
     private class StableArrayAdapter extends ArrayAdapter<String>
     {
         private Context m_context;
@@ -199,39 +273,4 @@ public class MainActivity extends Activity implements LocationListener {
             return true;
         }
     }
-
-    public void onButtonClick(final View view)
-    {
-        try
-        {
-            /*
-            final ArrayList<String> list = new ArrayList<String>();
-            int iItemCount = adapter.getCount();
-            for (int i=0; i<iItemCount; i++)
-            {
-                list.add(adapter.getItem(i));
-            }
-            list.add("Enrico");
-            String[] values = list.toArray(new String[list.size()]);
-
-            if(values != null && values.length > 0)
-            {
-                adapter = new ArrayAdapter<String>(this,
-                        R.layout.row_layout, R.id.label, values);
-                final ListView listview = (ListView) findViewById(R.id.listView);
-                listview.setAdapter(adapter);
-            }
-
-            /*
-            adapter.add("Enrico");
-            adapter.notify();
-            adapter.notifyDataSetChanged();
-            */
-        }
-        catch(Exception e)
-        {
-            String error = e.getMessage();
-        }
-    }
-}
-
+    */
